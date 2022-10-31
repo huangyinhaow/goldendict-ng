@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 project(goldendict 
-        VERSION 22.9.24-alpha 
+        VERSION 22.9.24.0
         LANGUAGES CXX
         DESCRIPTION "A feature-rich dictionary lookup program, supporting multiple dictionary formats and online dictionaries"
 )
@@ -27,7 +27,10 @@ option(WITH_QTMULTIMEDIA_PLAYER "Enable support for QtMultiMedia player" ON)
 option(WITH_FFMPEG_PLAYER "Enable support for FFMPEG player" ON)
 option(WITH_EPWING "Enable support for Epwing dictionary format" OFF)
 option(WITH_ZIM "Enable support for ZIM Wiki dictionary" ON)
-option(WITH_OPENCC "Enable support of Open Chinese Conversion" OFF)
+option(WITH_OPENCC "Enable support of Open Chinese Conversion" ON)
+option(WITH_use_xapian "use xapian" OFF)
+
+option(WITH_no_macos_universal "no macos universal" OFF)
 
 find_package(QT NAMES Qt5 Qt6 REQUIRED COMPONENTS Core)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Concurrent Gui Help Network PrintSupport Svg WebChannel WebEngineWidgets Widgets Xml)
@@ -35,10 +38,12 @@ find_package(Qt${QT_VERSION_MAJOR} OPTIONAL_COMPONENTS Core5Compat X11Extras)
 find_package(Hunspell)
 find_package(WrapZSTD 1.3)
 
+if(LINUX)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(linux_base_libs REQUIRED IMPORTED_TARGET
     "vorbisfile" "vorbis" "ogg" "hunspell"
 )
+endif()
 if(WITH_FFMPEG_PLAYER)
     pkg_check_modules(ffmpeg_libs REQUIRED IMPORTED_TARGET
         "ao" "libavutil" "libavformat" "libavcodec" "libswresample"
@@ -657,7 +662,7 @@ if((QT_VERSION_MAJOR GREATER 5))
     )
 endif()
 
-if(NOT CONFIG( no_qtmultimedia_player ))
+if(WITH_QTMULTIMEDIA_PLAYER)
     target_compile_definitions(goldendict PRIVATE
         MAKE_QTMULTIMEDIA_PLAYER
     )
@@ -667,13 +672,13 @@ if(NOT CONFIG( no_qtmultimedia_player ))
     )
 endif()
 
-if(NOT CONFIG( no_ffmpeg_player ))
+if(WITH_FFMPEG_PLAYER )
     target_compile_definitions(goldendict PRIVATE
         MAKE_FFMPEG_PLAYER
     )
 endif()
 
-if(CONFIG(use_xapian))
+if(WITH_use_xapian)
     target_compile_definitions(goldendict PRIVATE
         USE_XAPIAN
     )
@@ -772,7 +777,7 @@ if(Release AND WIN32 AND win32-msvc_x_)
     )
 endif()
 
-if((WIN32) AND (NOT CONFIG( no_ffmpeg_player )))
+if(WIN32 AND WITH_FFMPEG_PLAYER)
     target_link_libraries(goldendict PRIVATE
         ao
         avcodec
@@ -794,7 +799,7 @@ if(Release AND WIN32)
     )
 endif()
 
-if(NOT CONFIG( no_macos_universal ))
+if(NOT WITH_no_macos_universal )
     target_compile_definitions(goldendict PRIVATE
         INCLUDE_LIBRARY_PATH
     )
@@ -830,7 +835,7 @@ if(FREEBSD)
     )
 endif()
 
-if((APPLE) AND (NOT CONFIG( no_ffmpeg_player )))
+if(APPLE AND WITH_FFMPEG_PLAYER)
     target_link_libraries(goldendict PRIVATE
         ao
         avcodec
@@ -840,7 +845,7 @@ if((APPLE) AND (NOT CONFIG( no_ffmpeg_player )))
     )
 endif()
 
-if((APPLE) AND (NOT CONFIG( no_macos_universal )))
+if(APPLE AND (NOT WITH_no_macos_universal ))
     target_include_directories(goldendict PRIVATE
         maclibs/include
     )
@@ -853,7 +858,7 @@ if((APPLE) AND (NOT CONFIG( no_macos_universal )))
     )
 endif()
 
-if((APPLE) AND (NOT (NOT CONFIG( no_macos_universal ))))
+if(APPLE AND WITH_no_macos_universal )
     target_include_directories(goldendict PRIVATE
         /opt/homebrew/include
         /usr/local/include
@@ -867,7 +872,7 @@ if((APPLE) AND (NOT (NOT CONFIG( no_macos_universal ))))
     )
 endif()
 
-if(CONFIG(zim_support))
+if(WITH_ZIM)
     target_compile_definitions(goldendict PRIVATE
         MAKE_ZIM_SUPPORT
     )
@@ -878,7 +883,7 @@ if(CONFIG(zim_support))
     )
 endif()
 
-if(NOT CONFIG( no_extra_tiff_handler ))
+if(WITH_EXTRA_TIFF_HANDLER)
     target_compile_definitions(goldendict PRIVATE
         MAKE_EXTRA_TIFF_HANDLER
     )
@@ -888,13 +893,13 @@ if(NOT CONFIG( no_extra_tiff_handler ))
     )
 endif()
 
-if(CONFIG(no_epwing_support))
+if(NOT WITH_EPWING)
     target_compile_definitions(goldendict PRIVATE
         NO_EPWING_SUPPORT
     )
 endif()
 
-if(NOT CONFIG( no_epwing_support ))
+if(WITH_EPWING)
     target_sources(goldendict PUBLIC
         epwing.cc epwing.hh
         epwing_book.cc epwing_book.hh
@@ -906,7 +911,7 @@ if(NOT CONFIG( no_epwing_support ))
     )
 endif()
 
-if(CONFIG(chinese_conversion_support))
+if(WITH_OPENCC)
     target_sources(goldendict PUBLIC
         chinese.cc chinese.hh
         chineseconversion.cc chineseconversion.hh chineseconversion.ui
