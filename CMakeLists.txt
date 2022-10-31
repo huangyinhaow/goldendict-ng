@@ -38,12 +38,16 @@ find_package(Qt${QT_VERSION_MAJOR} OPTIONAL_COMPONENTS Core5Compat X11Extras)
 find_package(Hunspell)
 find_package(WrapZSTD 1.3)
 
-if(LINUX)
+include(GNUInstallDirs)
+
+
 find_package(PkgConfig REQUIRED)
+
+
 pkg_check_modules(linux_base_libs REQUIRED IMPORTED_TARGET
     "vorbisfile" "vorbis" "ogg" "hunspell"
 )
-endif()
+
 if(WITH_FFMPEG_PLAYER)
     pkg_check_modules(ffmpeg_libs REQUIRED IMPORTED_TARGET
         "ao" "libavutil" "libavformat" "libavcodec" "libswresample"
