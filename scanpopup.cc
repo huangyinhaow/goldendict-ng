@@ -263,7 +263,7 @@ ScanPopup::ScanPopup( QWidget * parent,
 #endif
 
   hideTimer.setSingleShot( true );
-  hideTimer.setInterval( 400 );
+  hideTimer.setInterval( 2000 );
 
   connect( &hideTimer, &QTimer::timeout, this, &ScanPopup::hideTimerExpired );
 
@@ -497,37 +497,37 @@ void ScanPopup::engagePopup( bool forcePopup, bool giveFocus )
     {
       // Decide where should the window land
 
-      QPoint currentPos = QCursor::pos();
+//      QPoint currentPos = QCursor::pos();
 
-      QRect desktop = QGuiApplication::primaryScreen()->geometry();
+//      QRect desktop = QGuiApplication::primaryScreen()->geometry();
 
-      QSize windowSize = geometry().size();
+//      QSize windowSize = geometry().size();
 
-      int x, y;
+//      int x, y;
 
-      /// Try the to-the-right placement
-      if ( currentPos.x() + 4 + windowSize.width() <= desktop.topRight().x() )
-        x = currentPos.x() + 4;
-      else
-      /// Try the to-the-left placement
-      if ( currentPos.x() - 4 - windowSize.width() >= desktop.x() )
-        x = currentPos.x() - 4 - windowSize.width();
-      else
-      // Center it
-        x = desktop.x() + ( desktop.width() - windowSize.width() ) / 2;
+//      /// Try the to-the-right placement
+//      if ( currentPos.x() + 4 + windowSize.width() <= desktop.topRight().x() )
+//        x = currentPos.x() + 4;
+//      else
+//      /// Try the to-the-left placement
+//      if ( currentPos.x() - 4 - windowSize.width() >= desktop.x() )
+//        x = currentPos.x() - 4 - windowSize.width();
+//      else
+//      // Center it
+//        x = desktop.x() + ( desktop.width() - windowSize.width() ) / 2;
 
-      /// Try the to-the-bottom placement
-      if ( currentPos.y() + 15 + windowSize.height() <= desktop.bottomLeft().y() )
-        y = currentPos.y() + 15;
-      else
-      /// Try the to-the-top placement
-      if ( currentPos.y() - 15 - windowSize.height() >= desktop.y() )
-        y = currentPos.y() - 15 - windowSize.height();
-      else
-      // Center it
-        y = desktop.y() + ( desktop.height() - windowSize.height() ) / 2;
+//      /// Try the to-the-bottom placement
+//      if ( currentPos.y() + 15 + windowSize.height() <= desktop.bottomLeft().y() )
+//        y = currentPos.y() + 15;
+//      else
+//      /// Try the to-the-top placement
+//      if ( currentPos.y() - 15 - windowSize.height() >= desktop.y() )
+//        y = currentPos.y() - 15 - windowSize.height();
+//      else
+//      // Center it
+//        y = desktop.y() + ( desktop.height() - windowSize.height() ) / 2;
 
-      move( x, y );
+//      move( x, y );
     }
 
     show();
@@ -806,10 +806,18 @@ void ScanPopup::reactOnMouseMove( QPoint const & p )
       // If the mouse never entered the popup, hide the window instantly --
       // the user just moved the cursor further away from the window.
 
-      if ( !mouseEnteredOnce )
-        hideWindow();
-      else
-        hideTimer.start();
+//      if ( !mouseEnteredOnce )
+//        hideWindow();
+//      else
+//      if(!hideTimer.isActive())
+//        hideTimer.start();
+
+      auto dist = p - mousePos;
+      if( dist.manhattanLength() > 100 )
+      {
+        if( !hideTimer.isActive() )
+          hideTimer.start();
+      }
     }
   }
 }
@@ -1047,8 +1055,10 @@ void ScanPopup::interceptMouse()
     // (e.g. doesn't work at all in Windows 7 for some reason). Therefore
     // we use a polling timer now.
 
-//    grabMouse();
+    grabMouse();
     mouseGrabPollTimer.start();
+
+    mousePos = QCursor::pos();
 
     qApp->installEventFilter( this );
 
@@ -1068,7 +1078,7 @@ void ScanPopup::uninterceptMouse()
   {
     qApp->removeEventFilter( this );
     mouseGrabPollTimer.stop();
-//    releaseMouse();
+    releaseMouse();
 
     mouseIntercepted = false;
   }

@@ -154,6 +154,9 @@ private:
 
   QTimer mouseGrabPollTimer;
 
+  //used to hold the initial mouse position
+  QPoint mousePos;
+
   QIcon starIcon, blueStarIcon;
 
   void handleInputWord( QString const & , bool forcePopup = false );
