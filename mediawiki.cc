@@ -52,7 +52,11 @@ public:
   { return name; }
 
   map< Property, string > getProperties() noexcept override
-  { return map< Property, string >(); }
+  {
+    map< Property, string > props;
+    props.try_emplace( URL, Utils::Url::getSchemeAndHost( url ).toStdString() );
+    return props;
+  }
 
   unsigned long getArticleCount() noexcept override
   { return 0; }

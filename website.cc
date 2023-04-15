@@ -23,6 +23,7 @@ class WebSiteDictionary: public Dictionary::Class
 {
   string name;
   QByteArray urlTemplate;
+  QString baseUrl;
   bool experimentalIframe;
   QString iconFilename;
   bool inside_iframe;
@@ -49,6 +50,7 @@ public:
     //else file:/// local dictionary file path
 
     urlTemplate = QUrl( urlTemplate_ ).toEncoded() ;
+    baseUrl               = Utils::Url::getSchemeAndHost( urlTemplate_ );
     dictionaryDescription = urlTemplate_;
   }
 
@@ -56,7 +58,13 @@ public:
   { return name; }
 
   map< Property, string > getProperties() noexcept override
-  { return map< Property, string >(); }
+  {
+    map< Property, string > props;
+    if ( experimentalIframe ) {
+      props.try_emplace( URL, baseUrl.toStdString() );
+    }
+    return props;
+  }
 
   unsigned long getArticleCount() noexcept override
   { return 0; }

@@ -76,14 +76,13 @@ public:
     int pos = 0;
     QChar mark = accentMark();
 
-    for( int x = 0; x < baseString.length(); x++ )
-    {
-      if( baseString.at( x ) == mark )
+    for ( auto x : baseString ) {
+      if( x == mark )
       {
         accentMarkPos.append( pos );
         continue;
       }
-      normalizedString.append( baseString.at( x ) );
+      normalizedString.append( x );
       pos++;
     }
   }
@@ -96,9 +95,8 @@ public:
   int mirrorPosition( int const & pos ) const
   {
     int newPos = pos;
-    for( int x = 0; x < accentMarkPos.size(); x++ )
-    {
-      if( accentMarkPos.at( x ) < pos )
+    for ( int accentMarkPo : accentMarkPos ) {
+      if( accentMarkPo < pos )
         newPos++;
       else
         break;
@@ -275,8 +273,6 @@ ArticleView::ArticleView( QWidget * parent, ArticleNetworkAccessManager & nm, Au
   connect( searchPanel->lineEdit, &QLineEdit::returnPressed, this, &ArticleView::on_searchText_returnPressed );
   connect( ftsSearchPanel->next, &QPushButton::clicked, this, &ArticleView::on_ftsSearchNext_clicked );
   connect( ftsSearchPanel->previous, &QPushButton::clicked, this, &ArticleView::on_ftsSearchPrevious_clicked );
-
-  //
 
   webview->setUp( const_cast< Config::Class * >( &cfg ) );
 
@@ -713,9 +709,22 @@ void ArticleView::isFramedArticle( QString const & ca, const std::function< void
                                   } );
 }
 
+QString ArticleView::getBaseUrl() {
+  const QString dictId = getCurrentArticle();
+  for ( const auto & dict : allDictionaries ) {
+    if ( dictId.compare( QString::fromStdString( dict->getId()) ) == 0 ) {
+      if ( !dict->isLocalDictionary() ) {
+        const std::string baseUrl = dict->getProperties()[ Dictionary::URL ];
+        return QString::fromStdString( baseUrl );
+      }
+    }
+  }
+  return QString();
+}
+
 bool ArticleView::isExternalLink( QUrl const & url )
 {
-  return Utils::isExternalLink(url);
+  return Utils::isExternalLink( url ) ;
 }
 
 void ArticleView::tryMangleWebsiteClickedUrl( QUrl & url, Contexts & contexts )
@@ -945,10 +954,9 @@ QString ArticleView::getMutedForGroup( unsigned group )
 
     if ( groupInstance )
     {
-      for( unsigned x = 0; x < groupInstance->dictionaries.size(); ++x )
-      {
+      for ( const auto & dictionarie : groupInstance->dictionaries ) {
         QString id = QString::fromStdString(
-                       groupInstance->dictionaries[ x ]->getId() );
+          dictionarie->getId() );
 
         if ( mutedDictionaries->contains( id ) )
           mutedDicts.append( id );
@@ -980,8 +988,8 @@ QStringList ArticleView::getMutedDictionaries(unsigned group) {
     QStringList mutedDicts;
 
     if (groupInstance) {
-      for (unsigned x = 0; x < groupInstance->dictionaries.size(); ++x) {
-        QString id = QString::fromStdString(groupInstance->dictionaries[x]->getId());
+      for ( const auto & dictionarie : groupInstance->dictionaries ) {
+        QString id = QString::fromStdString( dictionarie->getId());
 
         if (mutedDictionaries->contains(id))
           mutedDicts.append(id);
@@ -1186,11 +1194,10 @@ void ArticleView::openLink( QUrl const & url, QUrl const & ref, QString const & 
       {
         // Link to other dictionary
         QString dictName( Utils::Url::queryItemValue( url, "dict" ) );
-        for( unsigned i = 0; i < allDictionaries.size(); i++ )
-        {
-          if( dictName.compare( QString::fromUtf8( allDictionaries[ i ]->getName().c_str() ) ) == 0 )
+        for ( const auto & allDictionarie : allDictionaries ) {
+          if( dictName.compare( QString::fromUtf8( allDictionarie->getName().c_str() ) ) == 0 )
           {
-            newScrollTo = scrollToFromDictionaryId( QString::fromUtf8( allDictionaries[ i ]->getId().c_str() ) );
+            newScrollTo = scrollToFromDictionaryId( QString::fromUtf8( allDictionarie->getId().c_str() ) );
             break;
           }
         }
@@ -1376,10 +1383,8 @@ void ArticleView::openLink( QUrl const & url, QUrl const & ref, QString const & 
     // Program. Run it.
     QString id( url.host() );
 
-    for( Config::Programs::const_iterator i = cfg.programs.begin();
-         i != cfg.programs.end(); ++i )
-    {
-      if ( i->id == id )
+    for ( const auto & program : cfg.programs ) {
+      if ( program.id == id )
       {
         // Found the corresponding program.
         Programs::RunInstance * req = new Programs::RunInstance;
@@ -1389,7 +1394,7 @@ void ArticleView::openLink( QUrl const & url, QUrl const & ref, QString const & 
         QString error;
 
         // Delete the request if it fails to start
-        if ( !req->start( *i, url.path().mid( 1 ), error ) )
+        if ( !req->start( program, url.path().mid( 1 ), error ) )
         {
           delete req;
 
@@ -1741,33 +1746,34 @@ void ArticleView::contextMenuRequested( QPoint const & pos )
 #else
   QWebEngineContextMenuRequest * menuData = webview->lastContextMenuRequest();
 #endif
-  QUrl targetUrl(menuData->linkUrl());
+  auto link_url = menuData->linkUrl();
+  QUrl targetUrl = link_url;
+
+  qDebug()<<targetUrl;
+  if (targetUrl.isRelative() && !getBaseUrl().isEmpty()) {
+    targetUrl = QUrl(getBaseUrl()+link_url.url());
+  }
+
   Contexts contexts;
 
   tryMangleWebsiteClickedUrl( targetUrl, contexts );
 
-  if ( !targetUrl.isEmpty() )
-  {
-    if ( !isExternalLink( targetUrl ) )
-    {
-      followLink = new QAction( tr( "Op&en Link" ), &menu );
-      menu.addAction( followLink );
+  if ( !link_url.isEmpty() && !isExternalLink( link_url ) ) {
+    followLink = new QAction( tr( "Op&en Link" ), &menu );
+    menu.addAction( followLink );
 
-      if( !popupView && !isAudioLink( targetUrl ) )
-      {
-        followLinkNewTab = new QAction( QIcon( ":/icons/addtab.svg" ),
-                                        tr( "Open Link in New &Tab" ), &menu );
-        menu.addAction( followLinkNewTab );
-      }
-    }
-
-    if ( isExternalLink( targetUrl ) )
-    {
-      followLinkExternal = new QAction( tr( "Open Link in &External Browser" ), &menu );
-      menu.addAction( followLinkExternal );
-      menu.addAction( webview->pageAction( QWebEnginePage::CopyLinkToClipboard ) );
+    if ( !popupView && !isAudioLink( link_url ) ) {
+    followLinkNewTab = new QAction( QIcon( ":/icons/addtab.svg" ), tr( "Open Link in New &Tab" ), &menu );
+    menu.addAction( followLinkNewTab );
     }
   }
+
+  if ( !targetUrl.isEmpty() && isExternalLink( targetUrl ) ) {
+    followLinkExternal = new QAction( tr( "Open Link in &External Browser" ), &menu );
+    menu.addAction( followLinkExternal );
+    menu.addAction( webview->pageAction( QWebEnginePage::CopyLinkToClipboard ) );
+  }
+
 
   QUrl imageUrl;
 #if( QT_VERSION < QT_VERSION_CHECK( 6, 0, 0 ) )
@@ -2541,9 +2547,7 @@ void ArticleView::highlightAllFtsOccurences( QWebEnginePage::FindFlags flags )
   // Don't use QList::toSet() or QSet's range constructor because they reserve space
   // for QList::size() elements, whereas the final QSet size is likely 1 or 2.
   QSet< QString > uniqueMatches;
-  for( int x = 0; x < allMatches.size(); ++x )
-  {
-    QString const & match = allMatches.at( x );
+  for ( const auto & match : allMatches ) {
     // Consider words that differ only in case equal if the search is case-insensitive.
     uniqueMatches.insert( ftsSearchMatchCase ? match : match.toLower() );
   }

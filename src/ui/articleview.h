@@ -214,7 +214,6 @@ public:
     if( !qFuzzyCompare( existedFactor, factor ) ) {
       qDebug() << "zoom factor ,existed:" << existedFactor << "set:" << factor;
       webview->setZoomFactor( factor );
-      //webview->page()->setZoomFactor(factor);
     }
   }
 
@@ -405,6 +404,7 @@ private:
   /// it in-place.
   bool isExternalLink( QUrl const & url );
 
+  QString getBaseUrl();
   /// Sees if the last clicked link is from a website frame. If so, changes url
   /// to point to url text translation instead, and saves the original
   /// url to the appropriate "contexts" entry.

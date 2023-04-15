@@ -31,7 +31,8 @@ enum Property
   Author,
   Copyright,
   Description,
-  Email
+  Email,
+  URL
 };
 
 DEF_EX( Ex, "Dictionary error", std::exception )
