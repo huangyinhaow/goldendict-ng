@@ -21,7 +21,7 @@ namespace
 
     void addCountry( QString const & country, QString const & code )
     {
-      (*this)[ gd::toQString( Folding::apply( gd::toWString( country ) ) ) ] = code.toLower();
+      (*this)[ QString::fromStdU32String( Folding::apply( gd::toWString( country ) ) ) ] = code.toLower();
     }
   };
 
@@ -287,7 +287,7 @@ namespace
 
 QString englishNametoIso2( QString const & name )
 {
-  Database::const_iterator i = Database::instance().find( gd::toQString( Folding::apply( gd::toWString( name ) ) ) );
+  Database::const_iterator i = Database::instance().find( QString::fromStdU32String( Folding::apply( gd::toWString( name ) ) ) );
 
   if ( i == Database::instance().end() )
     return QString();

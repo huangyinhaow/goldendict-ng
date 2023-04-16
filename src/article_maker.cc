@@ -512,7 +512,7 @@ void ArticleRequest::altSearchFinished()
 #ifdef QT_DEBUG
     for( unsigned x = 0; x < altsVector.size(); ++x )
     {
-      qDebug() << "Alt:" << gd::toQString( altsVector[ x ] );
+      qDebug() << "Alt:" << QString::fromStdU32String( altsVector[ x ] );
     }
 #endif
 
@@ -1010,7 +1010,7 @@ QString ArticleRequest::makeSplittedWordCompound()
 
       Folding::normalizeWhitespace( ws );
 
-      result.append( gd::toQString( ws ) );
+      result.append( QString::fromStdU32String( ws ) );
     }
   }
 
