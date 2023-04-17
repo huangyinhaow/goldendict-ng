@@ -10,10 +10,11 @@
 #include "wstring.hh"
 #include <QString>
 
-namespace gd
-{
-  wstring toWString( QString const & );
-  wstring normalize( wstring const & );
+namespace gd {
+wstring toWString( QString const & );
+wstring removeTailingZero( wstring const & v );
+wstring removeTailingZero( QString const & in );
+wstring normalize( wstring const & );
 }
 
 #endif

@@ -1251,6 +1251,9 @@ void MdxDictionary::removeDirectory( QString const & directory )
 
 static void addEntryToIndex( QString const & word, uint32_t offset, IndexedWords & indexedWords )
 {
+  if(word.contains("PUA.woff")){
+    qDebug()<<1;
+  }
   // Strip any leading or trailing whitespaces
   QString wordTrimmed = word.trimmed();
   indexedWords.addWord( gd::toWString( wordTrimmed ), offset );
@@ -1258,6 +1261,9 @@ static void addEntryToIndex( QString const & word, uint32_t offset, IndexedWords
 
 static void addEntryToIndexSingle( QString const & word, uint32_t offset, IndexedWords & indexedWords )
 {
+  if(word.contains("PUA.woff")){
+    qDebug()<<1;
+  }
   // Strip any leading or trailing whitespaces
   QString wordTrimmed = word.trimmed();
   indexedWords.addSingleWord( gd::toWString( wordTrimmed ), offset );

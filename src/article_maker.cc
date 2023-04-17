@@ -466,7 +466,7 @@ ArticleRequest::ArticleRequest( Config::InputPhrase const & phrase,
   // Accumulate main forms
   for( unsigned x = 0; x < activeDicts.size(); ++x )
   {
-    sptr< Dictionary::WordSearchRequest > s = activeDicts[ x ]->findHeadwordsForSynonym( gd::toWString( word ) );
+    sptr< Dictionary::WordSearchRequest > s = activeDicts[ x ]->findHeadwordsForSynonym( gd::removeTailingZero( word ) );
 
     connect( s.get(), &Dictionary::Request::finished, this, &ArticleRequest::altSearchFinished, Qt::QueuedConnection );
 
@@ -527,7 +527,7 @@ void ArticleRequest::altSearchFinished()
       {
         sptr< Dictionary::DataRequest > r =
           activeDicts[ x ]->getArticle( wordStd, altsVector,
-                                        gd::toWString( contexts.value( QString::fromStdString( activeDicts[ x ]->getId() ) ) ),
+                                        gd::removeTailingZero( contexts.value( QString::fromStdString( activeDicts[ x ]->getId() ) ) ),
                                         ignoreDiacritics );
 
         connect( r.get(), &Dictionary::Request::finished, this, &ArticleRequest::bodyFinished, Qt::QueuedConnection );
