@@ -27,7 +27,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-2019]
+        os: [windows-latest]
         qt_ver: [5.15.2]
         qt_arch: [win64_msvc2019_64]
     env:
@@ -86,6 +86,8 @@ jobs:
           echo "$previousTag">version.txt
 
       - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: amd64_arm64
       # msvc编译
       - name: msvc-build goldendict
         id: build
