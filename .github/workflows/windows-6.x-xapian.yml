@@ -85,7 +85,7 @@ jobs:
       # # msvc编译
       - uses: ilammy/msvc-dev-cmd@v1
       #   with:
-      #     arch: ${{ matrix.msvc_arch }}    
+      #     arch: amd64_arm64  
       - name: msvc-build goldendict
         id: build
         shell: cmd
